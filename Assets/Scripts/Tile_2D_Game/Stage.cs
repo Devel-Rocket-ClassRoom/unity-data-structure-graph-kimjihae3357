@@ -64,12 +64,16 @@ public class Stage : MonoBehaviour
 
     public void UpdateFog(int playerTileId, int visibleRange)
     {
+        // 1. 플레이어 주변 범위 안의 타일을 방문 처리
         for (int i = 0; i < _map.Tiles.Length; i++)
         {
             if (GetTileDistance(playerTileId, i) <= visibleRange)
+            {
                 _map.Tiles[i].IsVisited = true;
+            }
         }
 
+        // 2. 방문한 타일은 안개 끄고, 방문 안 한 타일은 안개 켜기
         for (int i = 0; i < _fogObjects.Length; i++)
         {
             if (_map.Tiles[i].IsVisited)
@@ -78,26 +82,10 @@ public class Stage : MonoBehaviour
             }
             else
             {
-                bool isBorder = false;
-                foreach (var adj in _map.Tiles[i].Adjacents)
-                {
-                    if (adj != null && adj.IsVisited)
-                    {
-                        isBorder = true;
-                        break;
-                    }
-                }
-
                 _fogObjects[i].SetActive(true);
-                if (isBorder)
-                {
-                    int fogSpriteId = GetFogSpriteId(i);
-                    _fogObjects[i].GetComponent<SpriteRenderer>().sprite = fogSprites[fogSpriteId];
-                }
-                else
-                {
-                    _fogObjects[i].GetComponent<SpriteRenderer>().sprite = fogSprites[0];
-                }
+
+                int fogSpriteId = GetFogSpriteId(i);
+                _fogObjects[i].GetComponent<SpriteRenderer>().sprite = fogSprites[fogSpriteId];
             }
         }
     }
@@ -106,25 +94,36 @@ public class Stage : MonoBehaviour
         var tile = _map.Tiles[tileId];
         int id = 0;
 
-        // AutoTileId와 동일한 비트 구조
-        // 0001 Top
-        // 0010 Left  
-        // 0100 Right
-        // 1000 Bottom
-        if (tile.Adjacents[(int)Sides.Top] != null && tile.Adjacents[(int)Sides.Top].IsVisited)
+        // 위쪽도 안개면 Top 비트 추가
+        if (tile.Adjacents[(int)Sides.Top] != null &&
+            tile.Adjacents[(int)Sides.Top].IsVisited == false)
+        {
             id |= 1 << (int)Sides.Top;
-        if (tile.Adjacents[(int)Sides.Left] != null && tile.Adjacents[(int)Sides.Left].IsVisited)
-            id |= 1 << (int)Sides.Left;
-        if (tile.Adjacents[(int)Sides.Right] != null && tile.Adjacents[(int)Sides.Right].IsVisited)
-            id |= 1 << (int)Sides.Right;
-        if (tile.Adjacents[(int)Sides.Bottom] != null && tile.Adjacents[(int)Sides.Bottom].IsVisited)
-            id |= 1 << (int)Sides.Bottom;
+        }
 
-        Debug.Log($"tileId: {tileId}, id: {id}, " +
-       $"Top: {tile.Adjacents[(int)Sides.Top]?.IsVisited}, " +
-       $"Left: {tile.Adjacents[(int)Sides.Left]?.IsVisited}, " +
-       $"Right: {tile.Adjacents[(int)Sides.Right]?.IsVisited}, " +
-       $"Bottom: {tile.Adjacents[(int)Sides.Bottom]?.IsVisited}");
+        // 왼쪽도 안개면 Left 비트 추가
+        if (tile.Adjacents[(int)Sides.Left] != null &&
+            tile.Adjacents[(int)Sides.Left].IsVisited == false)
+        {
+            id |= 1 << (int)Sides.Left;
+        }
+
+        // 오른쪽도 안개면 Right 비트 추가
+        if (tile.Adjacents[(int)Sides.Right] != null &&
+            tile.Adjacents[(int)Sides.Right].IsVisited == false)
+        {
+            id |= 1 << (int)Sides.Right;
+        }
+
+        // 아래쪽도 안개면 Bottom 비트 추가
+        if (tile.Adjacents[(int)Sides.Bottom] != null &&
+            tile.Adjacents[(int)Sides.Bottom].IsVisited == false)
+        {
+            id |= 1 << (int)Sides.Bottom;
+        }
+
+        if (id == 0)
+            return 15;
 
         return id;
     }
