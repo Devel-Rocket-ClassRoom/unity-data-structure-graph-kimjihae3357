@@ -1,8 +1,8 @@
-using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
-public class UiGraphNode : MonoBehaviour
+public class UIGraphNode : MonoBehaviour 
 {
     public Image image;
     public TextMeshProUGUI text;
@@ -23,7 +23,6 @@ public class UiGraphNode : MonoBehaviour
     public void SetColor(Color color)
     {
         image.color = color;
-        
     }
 
     public void SetText(string text)

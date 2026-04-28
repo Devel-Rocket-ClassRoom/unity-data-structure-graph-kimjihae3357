@@ -1,6 +1,6 @@
 using NUnit.Framework;
-using UnityEngine;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class GraphTest : MonoBehaviour
 {
@@ -11,13 +11,12 @@ public class GraphTest : MonoBehaviour
         DFSRecursive,
         PathFindingBFS,
         Dijkstra,
-        AStar,
+        Astar,
     }
-
     public Transform uiNodeRoot;
 
-    public UiGraphNode nodePrefab;
-    private List<UiGraphNode> uiNodes = new List<UiGraphNode>();
+    public UIGraphNode nodePrefab;
+    private List<UIGraphNode> uiNodes = new List<UIGraphNode>();
 
     private Graph graph;
 
@@ -29,11 +28,11 @@ public class GraphTest : MonoBehaviour
     {
         int[,] map = new int[5, 5]
         {
-            {1, -1, 4, 1, 1 },
-            {1, -1, 1, 6, 1 },
-            {1, -1, 1, 4, 1 },
-            {1, -1, 1, 3, 1 },
-            {1, 1, 1, 1, 1 },
+            {1,-1,1,3,1 },
+            {1,-1,1,1,1 },
+            {1,-1,1,4,3 },
+            {1,5,1,1,1 },
+            {1,1,1,-1,1 }
         };
         graph = new Graph();
         graph.Init(map);
@@ -42,7 +41,7 @@ public class GraphTest : MonoBehaviour
 
     private void InitUiNodes(Graph graph)
     {
-        foreach (var node in graph.nodes)
+        foreach(var node in graph.nodes)
         {
             var uiNode = Instantiate(nodePrefab, uiNodeRoot);
             uiNode.SetNode(node);
@@ -70,47 +69,42 @@ public class GraphTest : MonoBehaviour
             case Algorithm.DFS:
                 search.DFS(graph.nodes[startId]);
                 break;
-
             case Algorithm.BFS:
                 search.BFS(graph.nodes[startId]);
                 break;
-
             case Algorithm.DFSRecursive:
                 search.DFSRecursive(graph.nodes[startId]);
                 break;
-
             case Algorithm.PathFindingBFS:
                 search.PathFindingBFS(graph.nodes[startId], graph.nodes[endId]);
                 break;
-
             case Algorithm.Dijkstra:
                 search.Dijkstra(graph.nodes[startId], graph.nodes[endId]);
                 break;
-                
-            case Algorithm.AStar:
-                search.AStar(graph.nodes[startId], graph.nodes[endId]);
+            case Algorithm.Astar:
+                search.Astar(graph.nodes[startId], graph.nodes[endId]);
                 break;
         }
 
         ResetUiNodes();
-        if (search.path.Count <= 1)
+        if(search.path.Count <= 1)
         {
-            if (search.path.Count == 1)
+            if(search.path.Count == 1)
             {
                 var only = search.path[0];
                 uiNodes[only.id].SetColor(Color.red);
+                uiNodes[only.id].SetText($"ID: {only.id}\nW:{only.weight}");
             }
+
             return;
         }
 
-        for (int i = 0;  i < search.path.Count; i++)
+        for(int i = 0; i < search.path.Count; ++i)
         {
             var node = search.path[i];
             var color = Color.Lerp(Color.red, Color.green, (float)i / (search.path.Count - 1));
             uiNodes[node.id].SetColor(color);
-            uiNodes[node.id].SetText($"ID: {node.id}\nWeight: {node.weight}\nPath: {i}");
+            uiNodes[node.id].SetText($"ID: {node.id}\nW:{node.weight}\npath: {i}");
         }
-
-
     }
 }
