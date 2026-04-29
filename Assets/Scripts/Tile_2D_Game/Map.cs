@@ -1,4 +1,7 @@
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public enum TileTypes
@@ -122,11 +125,81 @@ public class Map
 
         var towns = Tiles.Where(x => x.AutoTileId == (int)TileTypes.Towns).ToArray();
         ShuffleTiles(towns);
-        startTileId = towns[1];
-        castleTileId = towns[0];
-        towns[0].AutoTileId = (int)TileTypes.Castle;
+        startTileId = towns[0];
+        castleTileId = towns[1];
+        castleTileId.AutoTileId = (int)TileTypes.Castle;
 
-
+        //var path = PathFindingAstar(startTileId, castleTileId);
         return true;
+    }
+
+    public List<Tile> PathFindingAstar(Tile startTile, Tile endTile)
+    {
+        List<Tile> path = new List<Tile>();
+
+        path.Clear();
+
+        var distances = new int[Tiles.Length];
+
+        for (int i = 0; i < distances.Length; i++)
+        {
+            distances[i] = int.MaxValue;
+        }
+        distances[startTile.Id] = 0;
+
+        PriorityQueue<Tile, int> pq = new PriorityQueue<Tile, int>();
+        pq.Enqueue(startTile, 0 + Heuristic(startTile, endTile));
+        var visited = new HashSet<Tile>();
+        Tile[] previous = new Tile[Tiles.Length];
+        while (pq.Count > 0)
+        {
+            var u = pq.Dequeue();
+            if (visited.Contains(u))
+            {
+                continue;
+            }
+            visited.Add(u);
+            if (u == endTile)
+            {
+                var temp = u;
+                while (temp != null)
+                {
+                    path.Add(temp);
+                    temp = previous[temp.Id];
+                }
+                path.Reverse();
+                break;
+            }
+            foreach (var v in u.Adjacents)
+            {
+                if (v == null)
+                    continue;
+
+                if (!v.CanMove || visited.Contains(v))
+                {
+                    continue;
+                }
+
+                int newDist = distances[u.Id] + v.Weight;
+
+                if (previous[v.Id] == null || newDist < distances[v.Id])
+                {
+                    distances[v.Id] = newDist;
+                    previous[v.Id] = u;
+                    pq.Enqueue(v, newDist + Heuristic(v, endTile));
+                }
+            }
+        }
+        return path;
+    }
+    private int Heuristic(Tile a, Tile b)
+    {
+        int ax = a.Id % Columns;
+        int ay = a.Id / Columns;
+
+        int bx = b.Id % Columns;
+        int by = b.Id / Columns;
+
+        return Mathf.Abs(ax - bx) + Mathf.Abs(ay - by);
     }
 }

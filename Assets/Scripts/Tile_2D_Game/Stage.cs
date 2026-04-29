@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Stage : MonoBehaviour
@@ -40,7 +42,7 @@ public class Stage : MonoBehaviour
             ResetStage();
         }
 
-        if(Input.GetKeyDown(KeyCode.Mouse0))
+        if (Input.GetKeyDown(KeyCode.Mouse0))
         {
             Vector3 screenPos = Input.mousePosition;
             Debug.Log(ScreenPosToTileId(screenPos));
@@ -52,7 +54,7 @@ public class Stage : MonoBehaviour
             int currentTileId = ScreenPosToTileId(Input.mousePosition);
             if (prevTileId != currentTileId && currentTileId != -1)
             {
-                _tileObjects[currentTileId].GetComponent<SpriteRenderer>().color= Color.green;
+                _tileObjects[currentTileId].GetComponent<SpriteRenderer>().color = Color.green;
                 if (prevTileId >= 0 && prevTileId < _tileObjects.Length)
                 {
                     _tileObjects[prevTileId].GetComponent<SpriteRenderer>().color = Color.white;
@@ -155,6 +157,21 @@ public class Stage : MonoBehaviour
         CreatePlayer();
     }
 
+    private void DrawPath(List<Tile> path)
+    {
+        foreach (var tile in _tileObjects)
+        {
+            tile.GetComponent<SpriteRenderer>().color = Color.white;
+        }
+
+        for (int i = 0; i < path.Count; i++)
+        {
+            float t = i / (path.Count - 1);
+            _tileObjects[path[i].Id].GetComponent<SpriteRenderer>().color =
+                Color.Lerp(Color.green, Color.red, t);
+        }
+    }
+
     private void CreatePlayer()
     {
         if (player != null)
@@ -162,7 +179,7 @@ public class Stage : MonoBehaviour
             Destroy(player.gameObject);
         }
         player = Instantiate(playerPrefab);
-        player.MoveTo(Map.startTileId.Id);
+        player.Warp(Map.startTileId.Id);
     }
 
     private void CreateGrid()
@@ -196,7 +213,7 @@ public class Stage : MonoBehaviour
             position.x = -((MapWidth * TileSize.x) / 2 - TileSize.x / 2);
             position.y -= TileSize.y;
         }
-
+        /*
         _fogObjects = new GameObject[MapWidth * MapHeight];
         for (int i = 0; i < _tileObjects.Length; i++)
         {
@@ -209,7 +226,7 @@ public class Stage : MonoBehaviour
             sr.sortingOrder = 1;
 
             _fogObjects[i] = fogGO;
-        }
+        }*/
     }
 
     public void DecorateTile(int tileId)
@@ -261,3 +278,5 @@ public class Stage : MonoBehaviour
         return GetTilePos(y, x);
     }
 }
+
+   
